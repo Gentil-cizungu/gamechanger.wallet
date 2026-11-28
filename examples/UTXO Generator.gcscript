@@ -1,10 +1,20 @@
 {
   "title": "UTXO Generator",
-  "description": "Generates required amount of UTXOs in your wallet to improve multi-transaction concurrency capabilities, for dapps and GCFS filesystem write events. A GameChanger Wallet Dapp Demo. https://gamechanger.finance/",
+  "description": "Sends 'utxo-quantity' lovelace back to your current address, creating one new UTXO. Run it several times to get more UTXOs and improve multi-transaction concurrency for dapps and GCFS filesystem write events. Returns the transaction hash",
   "type": "script",
   "exportAs": "data",
+  "return": {
+    "mode": "last"
+  },
+  "args": {
+    "utxo-quantity": "1000000"
+  },
   "isolateCache": true,
   "run": {
+    "argumentGuards": {
+      "type": "macro",
+      "run": "{assert(cmpBigNum('gte',get('args.utxo-quantity'),'1000000'),'utxo-quantity must be at least 1000000 lovelace')}"
+    },
     "address": {
       "type": "getCurrentAddress"
     },
@@ -12,7 +22,7 @@
       "type": "buildTx",
       "title": "UTXO Generator",
       "name": "UTXO Generator",
-      "description": "Generates required amount of UTXOs in your wallet to fulfill future tasks",
+      "description": "Sends lovelace back to your own address as a new UTXO",
       "tx": {
         "outputs": [
           {
@@ -21,7 +31,7 @@
               {
                 "assetName": "ada",
                 "policyId": "ada",
-                "quantity": "1000000"
+                "quantity": "{get('args.utxo-quantity')}"
               }
             ]
           }
@@ -49,8 +59,12 @@
     "submit": {
       "type": "submitTxs",
       "mode": "parallel",
-      "namePattern": "UTXO Generator Submittted",
+      "namePattern": "UTXO Generator Submitted",
       "txs": "{get('cache.sign')}"
+    },
+    "finally": {
+      "type": "macro",
+      "run": "{get('cache.build.txHash')}"
     }
   }
 }
